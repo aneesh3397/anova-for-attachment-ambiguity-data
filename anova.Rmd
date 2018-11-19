@@ -1,0 +1,185 @@
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Installing required libraries:
+
+```{r 1}
+
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(ggplot2)
+#
+# color-blind palette
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+lvB <- read.csv('/Users/aneeshnaik/Downloads/lvBetween_25oct18.csv')
+
+head(lvB)
+```
+
+## Recoding conditions:
+
+Before we begin our analysis we must recode the conditions into factors of interest:
+
+```{r 2}
+lvB$amb <- ifelse(lvB$newCond == "a" |
+                   lvB$newCond == "d", "amb",
+                 ifelse(lvB$newCond == "b" |
+                   lvB$newCond == "e", "low", "high"))
+
+lvB$firstGen <- ifelse(lvB$newCond == "a" |
+                   lvB$newCond == "b" |
+                   lvB$newCond == "c", "f", "m")
+lvB$secondGen <- ifelse(lvB$newCond == "a" |
+                   lvB$newCond == "e" |
+                   lvB$newCond == "f", "f", "m")
+
+str(lvB)
+
+lvRel <- lvB[lvB$pos >= 4 & lvB$pos <= 8,]
+str(lvRel)
+
+```
+
+## Plots:
+
+Now in order to get a sense of the distribution of the data, we make the following plots:
+
+```{r 3}
+
+# reading times across all conditions:
+
+lvP0 <- ggplot(lvRel,
+                aes(pos, RT))
+
+lvP1 <- lvP0 + stat_summary(fun.y = mean, geom = "line", size = 1) 
+
+lvP1
+
+# separately for the three ambiguity values:
+
+lvP0 <- ggplot(lvRel,
+                aes(pos, RT,
+                    colour = factor(amb)))
+
+lvP1 <- lvP0 + stat_summary(fun.y = mean, geom = "line", size = 1) 
+
+lvP1
+
+# separately for the gender of the first noun as a function of the gender of the second noun:
+
+lvP0 <- ggplot(lvRel,
+                aes(pos, RT,
+                    colour = factor(firstGen)))
+
+lvP1 <- lvP0 + stat_summary(fun.y = mean, geom = "line", size = 1) +
+  facet_wrap(~ secondGen)
+
+lvP1
+
+# and finally putting it all into a single plot, by ambiguity and gender of the first noun:
+
+lvP0 <- ggplot(lvRel,
+                aes(pos, RT,
+                    colour = factor(amb),
+                    linetype = firstGen))
+
+lvP1 <- lvP0 + stat_summary(fun.y = mean, geom = "line", size = 1)
+
+lvP1
+```
+
+## ANOVA:
+
+We are now ready to perform the ANOVA that tests the influence of the factor values on reading times at a given position. 
+
+```{r 4}
+# Calculating means:
+
+subjectMeans <- lvRel %>% 
+  filter(pos == 6) %>%
+  group_by(newSubj, amb, firstGen) %>%
+  summarise(meanRT = mean(RT)) %>%
+  data.frame()
+
+colnames(subjectMeans) <- c("subj",
+                            "amb",
+                            "firstGen",
+                            "meanRT") 
+
+
+grandMean <- mean(subjectMeans$meanRT)
+g_means <- tapply(subjectMeans$meanRT, subjectMeans$firstGen, mean)
+pos_means <- tapply(subjectMeans$meanRT,subjectMeans$amb, mean)
+g_pos_means <- tapply(subjectMeans$meanRT, list(subjectMeans$firstGen,subjectMeans$amb), mean)
+
+grandMean;g_means;pos_means;g_pos_means
+
+# Calculating sums of squares:
+
+sos_total <- sum((subjectMeans$meanRT - grandMean)^2)
+sos_total
+
+sos_gen <- sum((g_means - grandMean)^2)
+sos_gen <- sos_gen*24*3
+
+sos_amb <- sum((pos_means-grandMean)^2)
+sos_amb <- sos_amb*24*2
+
+acc <- 0
+for(i in 1:2){
+  for(j in 1:3){
+    acc = acc + (g_pos_means[i,j] - g_means[i] - pos_means[j] + grandMean)^2
+  }
+}
+sos_g_amb <- 24*sum(acc)
+sos_g_amb
+
+sos_err <- sos_total-sos_gen-sos_amb-sos_g_amb
+sos_err
+
+# Calculating mean square errors:
+
+ms_total <- sos_total/(144-1)
+ms_gen <- sos_gen/(2-1)
+ms_amb <- sos_amb/(3-1)
+ms_gen_amb <- sos_g_amb/((2-1)*(3-1))
+ms_err <- sos_err/(144-2*3)
+
+# Calculating F stats:
+
+f_gen <- ms_gen / ms_err
+f_amb <- ms_amb / ms_err
+f_g_amb <- ms_gen_amb/ ms_err
+
+# Comparing results to output of aov():
+
+f_gen;f_amb;f_g_amb
+
+ms_total;ms_gen;ms_amb;ms_gen_amb;ms_err
+
+sos_total;sos_gen;sos_amb;sos_g_amb;sos_err
+
+summary(aov(meanRT ~ firstGen + amb + firstGen:amb,
+            data = subjectMeans))
+
+```
+
+We see that our handmade ANOVA produces the same results as the aov() function. From the p values it seems like the gender of the first noun and the attachment position have some effect on the reading times as the p values are < 0.05. The interaction factor does not have a significant effect on reading times. 
+
+
+## Tukey's HSD:
+```{r 5}
+
+anova <- aov(meanRT ~ firstGen + amb + firstGen:amb,
+            data = subjectMeans)
+
+TukeyHSD(anova)
+
+plot(TukeyHSD(anova),las = 1,cex.axis = 0.75)
+```
+
+We see that the largest and most significant pair-wise comparisons (p val < 0.05) are between 'm' and 'f' for the gender of the first noun, between the low and ambiguous attachment positions and the interaction of these two which would be the 'm:low-f:amb' comparison. 
