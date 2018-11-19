@@ -1,6 +1,6 @@
 # anova-for-attachment-ambiguity-data
 
-The goal of this project was to develop an ANOVA from scratch and compare it's results to that of the built in ANOVA function in R, aov(). The data used are from Logachev & Vasishth (2015) and can be found in the file logachevVasishth2015CogSci.csv. The data set contains reading times from a self-paced reading study run in German which was designed to test for the “ambiguity advantage,” in which a sentence like (iii) in which attachment is ambiguous is parsed faster than related unambiguous sentences like (i) and (ii): 
+The goal of this project was to develop an ANOVA from scratch and compare it's results to that of the built in ANOVA function in R, aov(). The data used are from Logachev & Vasishth (2015) and can be found in the file lvBetween_25oct18.csv. The data set contains reading times from a self-paced reading study run in German which was designed to test for the “ambiguity advantage,” in which a sentence like (iii) in which attachment is ambiguous is parsed faster than related unambiguous sentences like (i) and (ii): 
 
 The driver of the car that had a moustache was pretty cool. (high attachment)
 The car of the driver that had a moustache was pretty cool. (low attachment)
