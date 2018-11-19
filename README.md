@@ -9,8 +9,13 @@ The son of the driver that had a moustache was pretty cool. (ambiguous: both hig
 The 6 types of sentences used as stimuli are as follows:
 
 “a”: both nouns are feminine in grammatical gender, and the relative pronoun is also feminine, so the relative clause could attach high or low, i.e. attachment is ambiguous,
+
 “b”: first noun fem., second masc., rel. pro. masc.: unambiguous low,
+
 “c”: first noun fem., second masc., rel. pro. fem.: unambiguous high,
+
 “d”: first noun masc., second masc., rel. pro. masc.: ambiguous,
+
 “e”: first noun masc., second fem., rel. pro. fem.: unambiguous low,
+
 “f”: first noun masc., second fem., rel. pro. masc.: unambiguous high.
